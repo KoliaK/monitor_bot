@@ -1,0 +1,5 @@
+# Ignore Python virtual environment
+.venv/
+
+# Python bytecode cache (recursive, using ** in case __pycache__ is located in a subfolders)
+**/__pycache__/
