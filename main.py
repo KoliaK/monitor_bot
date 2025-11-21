@@ -26,8 +26,14 @@ def request_getter(url: str) -> str:
 def parse_books():
     html_content = request_getter(url)
     soup = BeautifulSoup(html_content, 'html.parser')
-    title = soup.find_all(article_class='.product_pod h3', limit=5)
-    print(title)
+    titles = soup.find_all(article_class='h3', limit=5)
+    prices = soup.find_all(article_class='price_color', limit=5)
+    books = {
+        titles : prices
+    }
+    for title, price in books:
+        print(books[title])
+        print(books[price])
 
 
 if __name__ == '__main__':
