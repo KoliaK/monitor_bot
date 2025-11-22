@@ -3,6 +3,7 @@ import json
 from bs4 import BeautifulSoup
 import sys
 import re
+import database
 
 url = 'http://books.toscrape.com/'
 
@@ -44,22 +45,26 @@ def parse_books() -> None:
         price_tag = card.find('p', class_='price_color')
         # Cleans any Currency Symbols And Converts The Price to Float
         price = clean_price(price_tag.text)
+        
         # Adds a Dict to the List to be Stored in a Json
-        books_data.append({'Book Title': title, 'Book Price': price})
+        # books_data.append({'Book Title': title, 'Book Price': price})
+
+        # Adds to the database
+        database.store_book(title, price)
 
         # use if necessary to debug
-        # print(f"Book: {title}")
-        # print(f"Price: {price}")
-        # print("-" * 20)
+        print(f"Book: {title}")
+        print(f"Price: {price}")
+        print("-" * 20)
 
-    try:
-        with open('books.json', 'w', encoding='utf-8') as file:
-            json.dump(books_data, file, indent=4)
-            print('Data successfuly written to books.json')
-    # I'm not sure what IOError means, and 'e'. What this does?        
-    except IOError as e:
-        # I'm completely clueless of why to include {e} here.
-        print(f'Error writing to file: {e}')
+    # JSON WRITE FILE
+    # try:
+    #     with open('books.json', 'w', encoding='utf-8') as file:
+    #         json.dump(books_data, file, indent=4)
+    #         print('Data successfuly written to books.json')
+    # # Prints out the Input/Output error in case of failing to write the Json file       
+    # except IOError as e:
+    #     print(f'Error writing to file: {e}')
 
 if __name__ == '__main__':
     parse_books()
