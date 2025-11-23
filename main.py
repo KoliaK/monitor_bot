@@ -4,6 +4,8 @@ from bs4 import BeautifulSoup
 import sys
 import re
 import database
+import schedule
+import time
 
 url = 'http://books.toscrape.com/'
 
@@ -25,7 +27,7 @@ def clean_price(price: str) -> float:
     stripped_price = re.sub(r'[^0-9.]', '', price)
     return float(stripped_price)
     
-def parse_books() -> None:
+def job() -> None:
     html_content = request_getter(url)
     # Scraps HTML Tags
     soup = BeautifulSoup(html_content, 'html.parser')
@@ -71,4 +73,9 @@ def parse_books() -> None:
     #     print(f'Error writing to file: {e}')
 
 if __name__ == '__main__':
-    parse_books()
+    schedule.every(1).minutes.do(job)
+    print('Monitor started... Waiting for schedule.')
+    
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
