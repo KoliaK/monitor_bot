@@ -18,6 +18,7 @@ def create_table():
         ''')
         conn.commit()
 
+
 def store_book(title, price):
     # Ensure table exists before inserting (or call this once in main.py)
     create_table()
@@ -26,9 +27,7 @@ def store_book(title, price):
     
     with sqlite3.connect('books.db') as conn:
         cursor = conn.cursor()
-        
-        # 1. FIX: Removed {} around variables
-        # 2. FIX: Using standard SQL string (no f-string needed for the query part)
+
         cursor.execute(
             'INSERT INTO prices (title, price, timestamp) VALUES (?, ?, ?)', 
             (title, price, current_date_time)
@@ -37,3 +36,47 @@ def store_book(title, price):
         
         # strict checking: print strictly what was added
         print(f"Saved: {title} | ${price}")
+
+
+def get_analytics():
+
+    create_table()
+    
+    with sqlite3.connect('books.db') as conn:
+        cursor = conn.cursor()
+        # Get Total Count of Books
+        cursor.execute('SELECT COUNT(*) FROM prices')
+        # fetchone() returns a tuple, so we want the first item
+        total_books = cursor.fetchone()[0]
+        
+        # Get AVG Price
+        cursor.execute('SELECT COUNT(*), AVG(price) FROM prices')
+        average_price = cursor.fetchone()[0]
+
+        # Get Cheapest Book
+        cursor.execute(
+            '''
+                SELECT title, price FROM prices
+                ORDER BY price ASC
+                LIMIT 1
+            '''
+        )
+        # This time we want the entire tuple ('The Book Title', 12.99)
+        cheapest_book_data = cursor.fetchone()
+
+        # Handling the case where DB might be empty
+        if cheapest_book_data:
+            cheapest_title = cheapest_book_data[0]
+            cheapest_price = cheapest_book_data[1]
+        else:
+            cheapest_title = 'N/A'
+            cheapest_price = 0.0
+
+        print(
+            f"""
+                --- REPORT ---
+                Total Books Tracked: {total_books}
+                Average Price: £{average_price}
+                Cheapest Book: "{cheapest_title}" at £{cheapest_price}
+            """
+        )

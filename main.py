@@ -45,7 +45,7 @@ def parse_books() -> None:
         price_tag = card.find('p', class_='price_color')
         # Cleans any Currency Symbols And Converts The Price to Float
         price = clean_price(price_tag.text)
-        
+
         # Adds a Dict to the List to be Stored in a Json
         # books_data.append({'Book Title': title, 'Book Price': price})
 
@@ -56,6 +56,10 @@ def parse_books() -> None:
         print(f"Book: {title}")
         print(f"Price: {price}")
         print("-" * 20)
+    
+    # retrieves all books from books.db
+    # prints out the AVG and Cheapest price
+    database.get_analytics()
 
     # JSON WRITE FILE
     # try:
