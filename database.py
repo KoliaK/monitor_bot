@@ -27,15 +27,43 @@ def store_book(title, price):
     
     with sqlite3.connect('books.db') as conn:
         cursor = conn.cursor()
-
         cursor.execute(
-            'INSERT INTO prices (title, price, timestamp) VALUES (?, ?, ?)', 
-            (title, price, current_date_time)
+            '''
+                SELECT price 
+                FROM prices 
+                WHERE title = ?
+                ORDER BY id DESC
+                LIMIT 1
+            ''', (title,)
         )
-        conn.commit()
+
+        last_row = cursor.fetchone()
+
+        if last_row is None:
+            # If never seen this book before, add to the db
+            print(f'New book found: {title}')
+            cursor.execute(
+                'INSERT INTO prices (title, price, timestamp) VALUES (?, ?, ?)', 
+                (title, price, current_date_time)
+            )
+            conn.commit()
+        elif last_row[0] != price:
+            # Same book, price changed
+            # last_row is a tuple like (50.0,)
+            print(f'Price Change! {title} was {last_row[0]}, now {price}')
+            cursor.execute(
+                'INSERT INTO prices (title, price, timestamp) VALUES (?, ?, ?)', 
+                (title, price, current_date_time)
+            )
+            conn.commit()
+
+        else:
+            # Price is exactly the same
+            # Do nothing or print f"No change for {title}"
+            pass
         
         # strict checking: print strictly what was added
-        print(f"Saved: {title} | ${price}")
+        # print(f"Saved: {title} | ${price}")
 
 
 def get_analytics():
@@ -51,7 +79,7 @@ def get_analytics():
         
         # Get AVG Price
         cursor.execute('SELECT COUNT(*), AVG(price) FROM prices')
-        average_price = cursor.fetchone()[0]
+        average_price = cursor.fetchone()[1]
 
         # Get Cheapest Book
         cursor.execute(
@@ -76,7 +104,7 @@ def get_analytics():
             f"""
                 --- REPORT ---
                 Total Books Tracked: {total_books}
-                Average Price: £{average_price}
+                Average Price: £{average_price:.2f}
                 Cheapest Book: "{cheapest_title}" at £{cheapest_price}
             """
         )

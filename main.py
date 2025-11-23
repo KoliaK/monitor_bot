@@ -3,11 +3,15 @@ import json
 from bs4 import BeautifulSoup
 import sys
 import re
-import database
 import schedule
 import time
 
+#Scripts
+import database
+import notifications
+
 url = 'http://books.toscrape.com/'
+ALERT_THRESHOLD = 50.0
 
 def request_getter(url: str) -> str:
     try:
@@ -33,9 +37,9 @@ def job() -> None:
     soup = BeautifulSoup(html_content, 'html.parser')
     # Retrieves 5 Five Books That are Stored in Article tags 
     book_cards = soup.find_all('article', class_='product_pod', limit=5)
-    # List to be Filled With Dictionaries Containing Books Name and Price 
+    # List to be Filled With Dictionaries for JSON
     books_data = []
-    
+
     print(f"\n--- Found {len(book_cards)} books ---\n")
 
     for card in book_cards:
@@ -47,33 +51,34 @@ def job() -> None:
         price_tag = card.find('p', class_='price_color')
         # Cleans any Currency Symbols And Converts The Price to Float
         price = clean_price(price_tag.text)
-
         # Adds a Dict to the List to be Stored in a Json
-        # books_data.append({'Book Title': title, 'Book Price': price})
-
+        books_data.append({'Book Title': title, 'Book Price': price})
         # Adds to the database
         database.store_book(title, price)
 
         # use if necessary to debug
         print(f"Book: {title}")
         print(f"Price: {price}")
+        # Price Alert
+        if price < ALERT_THRESHOLD:
+            notifications.send_alert(f"🚨Low price found! {title} is £{price}🚨")
         print("-" * 20)
-    
+        
     # retrieves all books from books.db
     # prints out the AVG and Cheapest price
     database.get_analytics()
 
     # JSON WRITE FILE
-    # try:
-    #     with open('books.json', 'w', encoding='utf-8') as file:
-    #         json.dump(books_data, file, indent=4)
-    #         print('Data successfuly written to books.json')
-    # # Prints out the Input/Output error in case of failing to write the Json file       
-    # except IOError as e:
-    #     print(f'Error writing to file: {e}')
+    try:
+        with open('books.json', 'w', encoding='utf-8') as file:
+            json.dump(books_data, file, indent=4)
+            print('Data successfuly written to books.json')
+    # Prints out the Input/Output error in case of failing to write the Json file       
+    except IOError as e:
+        print(f'Error writing to file: {e}')
 
 if __name__ == '__main__':
-    schedule.every(1).minutes.do(job)
+    schedule.every(10).seconds.do(job)
     print('Monitor started... Waiting for schedule.')
     
     while True:
