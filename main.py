@@ -5,12 +5,18 @@ import sys
 import re
 import schedule
 import time
+import os
+from dotenv import load_dotenv
 
-#Scripts
+# Scripts
 import database
 import notifications
 
-url = 'http://books.toscrape.com/'
+# this loads environment variables from .env file
+load_dotenv()
+# url is fetched from .env file 
+url = os.getenv('TARGET_URL')
+
 ALERT_THRESHOLD = 50.0
 
 def request_getter(url: str) -> str:
@@ -78,7 +84,7 @@ def job() -> None:
         print(f'Error writing to file: {e}')
 
 if __name__ == '__main__':
-    schedule.every(10).seconds.do(job)
+    schedule.every(1).minutes.do(job)
     print('Monitor started... Waiting for schedule.')
     
     while True:
