@@ -1,4 +1,4 @@
-# 📚 Competitive Intelligence Book Monitor
+# 📚 Book Price Monitor
 
 ## 🚀 Overview
 An automated Python-based ETL pipeline that monitors book prices on e-commerce platforms. The application scrapes product data, cleanses it, stores historical trends in a SQLite database, and triggers real-time alerts when prices drop below a specified threshold.
